@@ -11,6 +11,11 @@ var ballSpeedY = 5;
 
 var player1Score = 0;
 var player2Score = 0;
+const winScore = 3;
+
+var showWinScreen = false;
+
+//var  = true;  //might need to delete
 
 var paddle1Y = 250;
 var paddle2Y = 250;
@@ -34,6 +39,13 @@ function MousePosition(event){
   };
 }
 
+function handleMouseClick(event) {
+  if(showWinScreen){
+    player1Score = 0;
+    player2Score = 0;
+    showWinScreen = false;
+  }
+}
 
 //window.onload means do NOT run this script until the page has finished loading
 window.onload = function() {
@@ -48,6 +60,8 @@ window.onload = function() {
     drawEverything();
   }, 1000/framesPerSecond );
 
+  canvas.addEventListener('mousedown', handleMouseClick);
+
   //detect mouse movement to move the paddle:
   canvas.addEventListener('mousemove',  function(event){
       var mousePos = MousePosition(event);
@@ -60,6 +74,11 @@ window.onload = function() {
 
 
 function ballReset(){
+  //check for end of game
+  if (player1Score >= winScore || player2Score >= winScore){
+    showWinScreen = true;
+  }
+
   ballX = canvas.width/2;
   ballY = canvas.height/2;
   ballSpeedX = -(ballSpeedX);
@@ -78,6 +97,10 @@ function computerMovement() {
 }
 
 function moveEverything(){
+  //if win condition occurs, skip this function
+  if(showWinScreen) {
+    return;
+  }
 
   computerMovement();
 
@@ -97,8 +120,8 @@ function moveEverything(){
       //the further from the center, the larger the change (delta) to the Y speed
 
     }else {
-      ballReset();
       player2Score += 1;
+      ballReset();
       //could also do: player2Score++;
     }
 
@@ -115,8 +138,8 @@ function moveEverything(){
       //the further from the center, the larger the change (delta) to the Y speed
 
     }else {
-      ballReset();
       player1Score += 1;
+      ballReset();
       //could also do: player1Score++;
     }
   }
@@ -126,15 +149,42 @@ function moveEverything(){
   if(ballY < 0)             {    ballSpeedY = -(ballSpeedY);  }
 }
 
+function drawNet() {
+  for (i = 0; i < canvas.height; i+=40){
+    //colorRect(center of page, Y-coord = i, 2px thick, 20px tall, white)
+    colorRect(canvas.width/2, i , 2, 20, 'white');
+  }
+}
+
 function drawEverything(){
   //background
+
   colorRect(0, 0, canvas.width, canvas.height, 'black');
+
+  //if win condition occurs, skip rest of this function
+  if(showWinScreen) {
+
+    canvasContext.fillStyle = 'white';
+    //need to set fill color or the text will just be black on black
+
+    if (player1Score >= winScore) {
+      canvasContext.fillText("PLAYER WON!  -  CLICK TO RESTART", 300, 200);
+    }
+    else if(player2Score >= winScore){
+      canvasContext.fillText("PLAYER LOST  -  CLICK TO RESTART", 300, 200);
+    }
+    return;
+  }
+
+  //center net:
+  drawNet();
   //paddle 1
   colorRect(0, paddle1Y, paddleThick, paddleHeight, 'white');
   //paddle 2
   colorRect(canvas.width-paddleThick, paddle2Y, paddleThick, paddleHeight, 'white');
   //ball in a circle shape:
   colorCircle(ballX, ballY, 10, 'red');
+
 
 
   //Scores:
